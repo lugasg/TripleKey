@@ -16,6 +16,7 @@ extern page_t page_mijia;
 bool autotheme = true;  //是否时钟主题自动切换
 bool clockaudio;  //是否整点报时
 
+// Convert 24H to 12H format and display time
 void dispTime(uint8_t hour, uint8_t min, uint8_t sec)
 {
 	char path[100];
@@ -29,16 +30,20 @@ void dispTime(uint8_t hour, uint8_t min, uint8_t sec)
 		f_updateall = true;
 	}
 
-	if (num_old[0] != hour / 10 || f_updateall)
+	// Convert to 12-hour format
+	uint8_t display_hour = hour % 12;
+	if (display_hour == 0) display_hour = 12;
+
+	if (num_old[0] != display_hour / 10 || f_updateall)
 	{
-		num_old[0] = hour / 10;
-		sprintf(path, "/clock_theme/%s/%s.png", clock_name[clock_type_index], number_name[hour / 10]);
+		num_old[0] = display_hour / 10;
+		sprintf(path, "/clock_theme/%s/%s.png", clock_name[clock_type_index], number_name[display_hour / 10]);
 		myDrawPNG(0, 0, path, 0);
 	}
-	if (num_old[1] != hour % 10 || f_updateall)
+	if (num_old[1] != display_hour % 10 || f_updateall)
 	{
-		num_old[1] = hour % 10;
-		sprintf(path, "/clock_theme/%s/%s.png", clock_name[clock_type_index], number_name[hour % 10]);
+		num_old[1] = display_hour % 10;
+		sprintf(path, "/clock_theme/%s/%s.png", clock_name[clock_type_index], number_name[display_hour % 10]);
 		myDrawPNG(64, 0, path, 0);
 	}
 
@@ -69,6 +74,44 @@ void dispTime(uint8_t hour, uint8_t min, uint8_t sec)
 	}
 
 	f_updateall = false;
+}
+
+// New function to display date and weekday
+void dispDate()
+{
+	static const char* weekdays[] = {"SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"};
+	char path[100];
+	static uint8_t old_month = 0xFF;
+	static uint8_t old_day = 0xFF;
+	static uint8_t old_wday = 0xFF;
+	
+	if (old_month != timeInfo.tm_mon + 1 || old_day != timeInfo.tm_mday || old_wday != timeInfo.tm_wday || f_updateall)
+	{
+		// Clear the third row display area first
+		// Add code to clear the display area if needed
+		
+		// Display month and day (MM/DD)
+		sprintf(path, "/clock_theme/%s/%s.png", clock_name[clock_type_index], number_name[(timeInfo.tm_mon + 1) / 10]);
+		myDrawPNG(0, 0, path, 2);
+		sprintf(path, "/clock_theme/%s/%s.png", clock_name[clock_type_index], number_name[(timeInfo.tm_mon + 1) % 10]);
+		myDrawPNG(32, 0, path, 2);
+		
+		// Draw a slash between month and day
+		// Add code to draw a slash if needed
+		
+		sprintf(path, "/clock_theme/%s/%s.png", clock_name[clock_type_index], number_name[timeInfo.tm_mday / 10]);
+		myDrawPNG(64, 0, path, 2);
+		sprintf(path, "/clock_theme/%s/%s.png", clock_name[clock_type_index], number_name[timeInfo.tm_mday % 10]);
+		myDrawPNG(96, 0, path, 2);
+		
+		// Display weekday
+		// You'll need to add code to display the weekday string
+		// This might require adding new image assets for text display
+		
+		old_month = timeInfo.tm_mon + 1;
+		old_day = timeInfo.tm_mday;
+		old_wday = timeInfo.tm_wday;
+	}
 }
 
 // 获取时钟类型数目
@@ -150,6 +193,7 @@ static void loop(void *data)
 		if (getLocalTime(&timeInfo))
 		{
 			dispTime(timeInfo.tm_hour, timeInfo.tm_min, timeInfo.tm_sec);
+			dispDate(); // Add date display
 			if (timeInfo.tm_min == 0 && timeInfo.tm_sec == 0 && timeInfo.tm_hour > 7 && timeInfo.tm_hour < 22)
 			{
 				if (clockaudio == true)
