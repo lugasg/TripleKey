@@ -19,6 +19,7 @@
 #include "pages/settings/settings.h"
 #include "pages/photo/photo.h"
 #include "pages/countdown/countdown.h"
+#include "pages/openclaw/openclaw.h"
 
 //需要添加自己的功能页面
 page_t *pages[] = {
@@ -36,9 +37,10 @@ page_t *pages[] = {
     &page_bilibili,
     &page_countdown,
     &page_pomodoro,
+    &page_openclaw,
     &page_settings,
-    
-    
+
+
 };
 
 static const uint8_t pages_num = ARRAY_SIZE(pages);
