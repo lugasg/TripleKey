@@ -3,3 +3,7 @@
 .vscode/c_cpp_properties.json
 .vscode/launch.json
 .vscode/ipch
+
+# Config files with sensitive data
+data/config_*.json
+data/config_*.txt

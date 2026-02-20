@@ -98,7 +98,7 @@ void dispTime()
 	gfx[2]->fillRect(0, 0, 128, 26, QINGSHUILAN);
 	gfx[2]->print(timestr);
 }
-void dispDate()
+static void dispDate()
 {
 	int16_t x1;
 	int16_t y1;

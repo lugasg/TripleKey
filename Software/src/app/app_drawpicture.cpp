@@ -45,7 +45,7 @@ int32_t mySeek(PNGFILE *handle, int32_t position)
 }
 
 // Function to draw pixels to the display
-void PNGDraw1(PNGDRAW *pDraw)
+int PNGDraw1(PNGDRAW *pDraw)
 {
     uint16_t usPixels[320];
     uint8_t usMask[320];
@@ -54,9 +54,10 @@ void PNGDraw1(PNGDRAW *pDraw)
     png.getLineAsRGB565(pDraw, usPixels, PNG_RGB565_LITTLE_ENDIAN, 0x00000000);
     png.getAlphaMask(pDraw, usMask, 1);
     gfx1->draw16bitRGBBitmap(xOffset, yOffset + pDraw->y, usPixels, pDraw->iWidth, 1);
+    return 1;
 }
 
-void PNGDraw2(PNGDRAW *pDraw)
+int PNGDraw2(PNGDRAW *pDraw)
 {
     uint16_t usPixels[320];
     uint8_t usMask[320];
@@ -65,9 +66,10 @@ void PNGDraw2(PNGDRAW *pDraw)
     png.getLineAsRGB565(pDraw, usPixels, PNG_RGB565_LITTLE_ENDIAN, 0x00000000);
     png.getAlphaMask(pDraw, usMask, 1);
     gfx2->draw16bitRGBBitmap(xOffset, yOffset + pDraw->y, usPixels, pDraw->iWidth, 1);
+    return 1;
 }
 
-void PNGDraw3(PNGDRAW *pDraw)
+int PNGDraw3(PNGDRAW *pDraw)
 {
     uint16_t usPixels[320];
     uint8_t usMask[320];
@@ -76,6 +78,7 @@ void PNGDraw3(PNGDRAW *pDraw)
     png.getLineAsRGB565(pDraw, usPixels, PNG_RGB565_LITTLE_ENDIAN, 0x00000000);
     png.getAlphaMask(pDraw, usMask, 1);
     gfx3->draw16bitRGBBitmap(xOffset, yOffset + pDraw->y, usPixels, pDraw->iWidth, 1);
+    return 1;
 }
 
 void myDrawPNG(int16_t x, int16_t y, const char *path, uint8_t oled_index)

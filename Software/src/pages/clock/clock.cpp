@@ -13,22 +13,15 @@ static uint8_t num_old[6] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
 extern page_t page_weather;
 extern page_t page_mijia;
 
-bool autotheme = true;  //是否时钟主题自动切换
+bool autotheme = false;  // 时钟主题自动切换 - 已禁用
 bool clockaudio;  //是否整点报时
 
-// Convert 24H to 12H format and display time
+// Convert 24H to 12H format and display time (fixed style, no auto-switch)
 void dispTime(uint8_t hour, uint8_t min, uint8_t sec)
 {
 	char path[100];
-	if (autotheme && sec == 0)
-	{
-		clock_type_index++;
-		if (clock_type_index >= clock_type_num)
-		{
-			clock_type_index = 0;
-		}
-		f_updateall = true;
-	}
+	// Fixed to NeonWhite theme for clear display
+	const char* fixed_theme = "NeonWhite";
 
 	// Convert to 12-hour format
 	uint8_t display_hour = hour % 12;
@@ -37,46 +30,46 @@ void dispTime(uint8_t hour, uint8_t min, uint8_t sec)
 	if (num_old[0] != display_hour / 10 || f_updateall)
 	{
 		num_old[0] = display_hour / 10;
-		sprintf(path, "/clock_theme/%s/%s.png", clock_name[clock_type_index], number_name[display_hour / 10]);
+		sprintf(path, "/clock_theme/%s/%s.png", fixed_theme, number_name[display_hour / 10]);
 		myDrawPNG(0, 0, path, 0);
 	}
 	if (num_old[1] != display_hour % 10 || f_updateall)
 	{
 		num_old[1] = display_hour % 10;
-		sprintf(path, "/clock_theme/%s/%s.png", clock_name[clock_type_index], number_name[display_hour % 10]);
+		sprintf(path, "/clock_theme/%s/%s.png", fixed_theme, number_name[display_hour % 10]);
 		myDrawPNG(64, 0, path, 0);
 	}
 
 	if (num_old[2] != min / 10 || f_updateall)
 	{
 		num_old[2] = min / 10;
-		sprintf(path, "/clock_theme/%s/%s.png", clock_name[clock_type_index], number_name[min / 10]);
+		sprintf(path, "/clock_theme/%s/%s.png", fixed_theme, number_name[min / 10]);
 		myDrawPNG(0, 0, path, 1);
 	}
 	if (num_old[3] != min % 10 || f_updateall)
 	{
 		num_old[3] = min % 10;
-		sprintf(path, "/clock_theme/%s/%s.png", clock_name[clock_type_index], number_name[min % 10]);
+		sprintf(path, "/clock_theme/%s/%s.png", fixed_theme, number_name[min % 10]);
 		myDrawPNG(64, 0, path, 1);
 	}
 
 	if (num_old[4] != sec / 10 || f_updateall)
 	{
 		num_old[4] = sec / 10;
-		sprintf(path, "/clock_theme/%s/%s.png", clock_name[clock_type_index], number_name[sec / 10]);
+		sprintf(path, "/clock_theme/%s/%s.png", fixed_theme, number_name[sec / 10]);
 		myDrawPNG(0, 0, path, 2);
 	}
 	if (num_old[5] != sec % 10 || f_updateall)
 	{
 		num_old[5] = sec % 10;
-		sprintf(path, "/clock_theme/%s/%s.png", clock_name[clock_type_index], number_name[sec % 10]);
+		sprintf(path, "/clock_theme/%s/%s.png", fixed_theme, number_name[sec % 10]);
 		myDrawPNG(64, 0, path, 2);
 	}
 
 	f_updateall = false;
 }
 
-// New function to display date and weekday
+// New function to display date and weekday (fixed style, NeonWhite theme)
 void dispDate()
 {
 	static const char* weekdays[] = {"SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"};
@@ -84,24 +77,25 @@ void dispDate()
 	static uint8_t old_month = 0xFF;
 	static uint8_t old_day = 0xFF;
 	static uint8_t old_wday = 0xFF;
+	const char* fixed_theme = "NeonWhite";
 	
 	if (old_month != timeInfo.tm_mon + 1 || old_day != timeInfo.tm_mday || old_wday != timeInfo.tm_wday || f_updateall)
 	{
 		// Clear the third row display area first
 		// Add code to clear the display area if needed
 		
-		// Display month and day (MM/DD)
-		sprintf(path, "/clock_theme/%s/%s.png", clock_name[clock_type_index], number_name[(timeInfo.tm_mon + 1) / 10]);
+		// Display month and day (MM/DD) - fixed to NeonWhite
+		sprintf(path, "/clock_theme/%s/%s.png", fixed_theme, number_name[(timeInfo.tm_mon + 1) / 10]);
 		myDrawPNG(0, 0, path, 2);
-		sprintf(path, "/clock_theme/%s/%s.png", clock_name[clock_type_index], number_name[(timeInfo.tm_mon + 1) % 10]);
+		sprintf(path, "/clock_theme/%s/%s.png", fixed_theme, number_name[(timeInfo.tm_mon + 1) % 10]);
 		myDrawPNG(32, 0, path, 2);
 		
 		// Draw a slash between month and day
 		// Add code to draw a slash if needed
 		
-		sprintf(path, "/clock_theme/%s/%s.png", clock_name[clock_type_index], number_name[timeInfo.tm_mday / 10]);
+		sprintf(path, "/clock_theme/%s/%s.png", fixed_theme, number_name[timeInfo.tm_mday / 10]);
 		myDrawPNG(64, 0, path, 2);
-		sprintf(path, "/clock_theme/%s/%s.png", clock_name[clock_type_index], number_name[timeInfo.tm_mday % 10]);
+		sprintf(path, "/clock_theme/%s/%s.png", fixed_theme, number_name[timeInfo.tm_mday % 10]);
 		myDrawPNG(96, 0, path, 2);
 		
 		// Display weekday
@@ -162,7 +156,7 @@ static void init(void *data)
 		clock_type_num = clock_name.size();
 		Serial.println(clock_type_num);
 	}
-	clock_type_index = random(clock_name.size());
+	// clock_type_index no longer used - fixed to SolidWhite theme
 
 	for (uint8_t i = 0; i < 6; i++)
 	{
@@ -226,24 +220,10 @@ static void loop(void *data)
 		manager_switchToParent(); // 进入父项目 //退出
 		break;
 
-	case ENC_NEXT:
-		clock_type_index++;
-		if (clock_type_index >= clock_type_num)
-		{
-			clock_type_index = 0;
-		}
-		f_updateall = true;
-		dispTime(timeInfo.tm_hour, timeInfo.tm_min, timeInfo.tm_sec);
-		break;
-	case ENC_PREV:
-		clock_type_index--;
-		if (clock_type_index < 0)
-		{
-			clock_type_index = clock_type_num - 1;
-		}
-		f_updateall = true;
-		dispTime(timeInfo.tm_hour, timeInfo.tm_min, timeInfo.tm_sec);
-		break;
+	// Encoder theme switching - DISABLED (fixed to NeonWhite theme)
+	// case ENC_NEXT:
+	// case ENC_PREV:
+	// 	break;
 	default:
 		break;
 	}

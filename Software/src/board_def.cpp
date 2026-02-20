@@ -2,6 +2,9 @@
 #include <ESPAsyncWebServer.h>
 #include <ElegantOTA.h>
 
+// Forward declaration from app_settings.cpp
+void handleRoot(AsyncWebServerRequest *request);
+
 WiFiManager wm;
 AsyncWebServer server(80);
 
@@ -147,6 +150,11 @@ void onOTAEnd(bool success)
         gfx3->print(" 100 %  ");
         gfx3->drawRoundRect(12, 105, 104, 10, 5, GREEN);
         gfx3->fillRoundRect(14, 107, 100, 6, 3, GREEN);
+        gfx3->setCursor(0, 80);
+        gfx3->setFont(&GillSansEN_Bold_12);
+        gfx3->setTextColor(QINGSHUILAN, BLACK);
+        gfx3->print("可继续上传或重启");
+        // Do NOT restart automatically - keep OTA server running for continuous updates
     }
     else
     {
@@ -356,8 +364,16 @@ void board_init()
     gfx2->setCursor(0, 13);
     gfx2->println("连接WIFI中");
 
+    // Try hardcoded credentials first (dev fallback)
+    WiFi.begin("luga", "luzhongjie");
+    int retries = 0;
+    while (WiFi.status() != WL_CONNECTED && retries < 20) {
+        delay(500);
+        retries++;
+    }
+
     // and goes into a blocking loop awaiting configuration
-    if (!wm.autoConnect("TripleKey"))
+    if (WiFi.status() != WL_CONNECTED && !wm.autoConnect("TripleKey"))
     {
         gfx2->println("failed to connect and hit timeout");
         delay(3000);
@@ -429,7 +445,7 @@ void board_init()
     gfx2->print("RSSI: ");      // 显示连接WIFI后的IP地址
     gfx2->println(WiFi.RSSI()); // 显示连接WIFI后的IP地址
     delay(1000);
-    if (digitalRead(BUTTON3_PIN) == 0)
+    if (digitalRead(BUTTON1_PIN) == 0)
     {
         gfx3->setCursor(0, 26);
         gfx3->setTextSize(2);
@@ -441,6 +457,14 @@ void board_init()
 
         server.on("/", HTTP_GET, [](AsyncWebServerRequest *request)
                   { request->send(200, "text/plain", "http://<IPAddress>/update"); });
+
+        // Add restart API endpoint
+        server.on("/restart", HTTP_POST, [](AsyncWebServerRequest *request)
+                  {
+                      request->send(200, "text/plain", "Restarting...");
+                      delay(1000);
+                      ESP.restart();
+                  });
 
         ElegantOTA.begin(&server); // Start ElegantOTA
                                    // ElegantOTA callbacks
@@ -489,4 +513,43 @@ void board_init()
 
     bleKeyboard.begin();
     app_led_off();
+
+    // Development mode: Keep OTA server running in normal mode for easy testing
+    server.on("/restart", HTTP_GET, [](AsyncWebServerRequest *request)
+              {
+                  request->send(200, "text/plain", "Restarting in 3s...");
+                  // Schedule restart using software timer
+                  esp_timer_handle_t restart_timer;
+                  esp_timer_create_args_t timer_args = {
+                      .callback = [](void* arg) { 
+                          esp_restart(); 
+                      },
+                      .arg = NULL,
+                      .dispatch_method = ESP_TIMER_TASK,
+                      .name = "restart_timer",
+                      .skip_unhandled_events = true
+                  };
+                  esp_timer_create(&timer_args, &restart_timer);
+                  esp_timer_start_once(restart_timer, 3000000);  // 3 seconds
+              });
+    
+    // Settings page route
+    server.on("/", HTTP_GET, [](AsyncWebServerRequest *request)
+              {
+                  handleRoot(request);
+              });
+    server.on("/settings", HTTP_GET, [](AsyncWebServerRequest *request)
+              {
+                  handleRoot(request);
+              });
+    server.on("/config", HTTP_GET, [](AsyncWebServerRequest *request)
+              {
+                  handleRoot(request);
+              });
+    
+    // ElegantOTA configuration for development mode
+    ElegantOTA.setAutoReboot(false);  // Do not auto-reboot after OTA
+    ElegantOTA.begin(&server);
+    server.begin();
+    Serial.println("OTA server running in normal mode - http://" + WiFi.localIP().toString() + "/update");
 }
